@@ -8,7 +8,7 @@ let _cache = null;
 
 async function staticData() {
   if (!_cache) {
-    const res = await fetch('/data.json');
+    const res = await fetch(import.meta.env.BASE_URL + 'data.json');
     if (!res.ok) throw new Error('data.json não encontrado');
     _cache = await res.json();
   }
