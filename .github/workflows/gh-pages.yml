@@ -4,9 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'frontend/public/data.json'   # Atualiza quando os dados mudam
-      - 'frontend/src/**'             # Atualiza quando o código muda
-      - 'frontend/public/**'
+      - 'frontend/**'
 
   workflow_dispatch: # Permite rodar manualmente pelo GitHub
 
