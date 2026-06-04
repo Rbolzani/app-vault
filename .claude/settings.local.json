@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-Process *)",
+      "Bash(start \"\" \"C:\\\\Users\\\\Rogério\\\\OneDrive\\\\Documentos\\\\Rogério\\\\Rogério\\\\Projetos Claude\\\\App Controle de Documentos\\\\design-concepts\\\\opcao-1-bibliotheca.html\")",
+      "Bash(start \"\" \"C:\\\\Users\\\\Rogério\\\\OneDrive\\\\Documentos\\\\Rogério\\\\Rogério\\\\Projetos Claude\\\\App Controle de Documentos\\\\design-concepts\\\\opcao-2-terminal.html\")",
+      "Bash(start \"\" \"C:\\\\Users\\\\Rogério\\\\OneDrive\\\\Documentos\\\\Rogério\\\\Rogério\\\\Projetos Claude\\\\App Controle de Documentos\\\\design-concepts\\\\opcao-3-zen.html\")",
+      "Bash(start \"\" \"C:\\\\Users\\\\Rogério\\\\OneDrive\\\\Documentos\\\\Rogério\\\\Rogério\\\\Projetos Claude\\\\App Controle de Documentos\\\\design-concepts\\\\opcao-4-obsidian.html\")",
+      "Bash(start \"\" \"C:\\\\Users\\\\Rogério\\\\OneDrive\\\\Documentos\\\\Rogério\\\\Rogério\\\\Projetos Claude\\\\App Controle de Documentos\\\\design-concepts\\\\opcao-5-aurora.html\")",
+      "Bash(npm start *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)",
+      "Bash(start *)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(curl -s http://localhost:3001/api/types)",
+      "Bash(node *)",
+      "Bash(npx playwright *)",
+      "Bash(npm list *)",
+      "Bash(npx --yes playwright@1.60.0 --version)",
+      "Bash(Write-Output 'const { chromium } = require\\('\\\\''playwright'\\\\''\\); *)",
+      "Bash(Out-File -Encoding utf8 pw-test.js)",
+      "Bash(npx --yes playwright@1.60.0 run-server)",
+      "Bash(cd /tmp)",
+      "Bash(npm init *)",
+      "Bash(npm install *)",
+      "Bash(NODE_PATH=/tmp/node_modules node *)",
+      "Bash(curl -s -o /dev/null -w \" | backend: %{http_code}\" http://localhost:3001/api/types)",
+      "Bash(npm --prefix frontend run build:static)",
+      "Bash(git --version)",
+      "Bash(gh --version)",
+      "Bash(winget *)",
+      "Bash(git config *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
+    ]
+  }
+}

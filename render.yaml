@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: docvault
+    runtime: node
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+    # ── Disco persistente (descomente para manter dados entre deploys) ──
+    # Custo: ~$0,25/GB/mês no plano pago do Render.
+    # No plano FREE os dados SÃO PERDIDOS a cada redeploy.
+    # Para um app pessoal, o disco de 1 GB sai ~R$ 1,50/mês.
+    #
+    # disk:
+    #   name: docvault-storage
+    #   mountPath: /opt/render/project/src/backend/data
+    #   sizeGB: 1

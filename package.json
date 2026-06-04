@@ -1,0 +1,20 @@
+{
+  "name": "docvault",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev":      "concurrently -n \"Backend,Frontend\" -c \"bgBlue.bold,bgGreen.bold\" \"npm run backend\" \"npm run frontend\"",
+    "backend":  "cd backend && npm start",
+    "frontend": "cd frontend && npm run dev",
+    "build":          "npm --prefix frontend install && npm --prefix frontend run build && npm --prefix backend install",
+    "start":          "node backend/server.js",
+    "export-cloud":   "node scripts/export-cloud.js",
+    "build-cloud":    "npm run export-cloud && npm --prefix frontend run build:static"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
