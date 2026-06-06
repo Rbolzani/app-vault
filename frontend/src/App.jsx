@@ -57,6 +57,13 @@ export default function App() {
   useEffect(() => { loadRepos(); }, [loadRepos]);
   useEffect(() => { api.fetchTypes().then(setTypes).catch(() => {}); }, []);
 
+  // Mobile: seleciona primeira categoria automaticamente ao entrar em docs
+  useEffect(() => {
+    if (view === 'docs' && activeType === '' && types.length > 0 && window.innerWidth <= 768) {
+      setActiveType(types[0].id);
+    }
+  }, [view, types.length]); // eslint-disable-line
+
   const loadDocs = useCallback(async () => {
     if (!activeRepoId) return;
     try {
@@ -273,20 +280,27 @@ export default function App() {
             )}
           </div>
 
-          <div className="drawer-cats">
-            <Sidebar
-              types={types}
-              typeCounts={typeCounts}
-              activeType={activeType}
-              onTypeSelect={t => {
-                setActiveType(t); setSearch('');
-                if (view !== 'docs') setView('docs');
-                setDrawerOpen(false);
-              }}
-            />
-          </div>
         </div>
       </div>
+
+      {/* ── BARRA DE CATEGORIAS (mobile, docs) ── */}
+      {view === 'docs' && types.length > 0 && (
+        <div className="mob-cat-bar">
+          {types.map(t => (
+            <button
+              key={t.id}
+              className={`mob-cat-btn${activeType === t.id ? ' active' : ''}`}
+              onClick={() => { setActiveType(t.id); setSearch(''); }}
+            >
+              <span className="mob-cat-icon">{t.icon}</span>
+              <span className="mob-cat-label">{t.label}</span>
+              {(typeCounts[t.id] ?? 0) > 0 && (
+                <span className="mob-cat-count">{typeCounts[t.id]}</span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ── PAINEL ── */}
       {view === 'dashboard' ? (

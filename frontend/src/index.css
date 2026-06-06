@@ -1303,6 +1303,7 @@ tr:hover .row-actions { opacity: 1; }
 .bottom-nav       { display: none; }
 .mobile-searchbar { display: none; }
 .mobile-drawer    { display: none; }
+.mob-cat-bar      { display: none; }
 
 /* ════════════ TABLET ≤ 1024px ════════════ */
 @media (max-width: 1024px) {
@@ -1334,6 +1335,59 @@ tr:hover .row-actions { opacity: 1; }
     transition: background 0.12s, color 0.12s;
   }
   .tn-hamburger:hover { background: rgba(255,255,255,0.13); color: var(--text); }
+
+  /* Barra de categorias (mobile, docs) */
+  .mob-cat-bar {
+    display: flex;
+    overflow-x: auto;
+    gap: 7px;
+    padding: 10px 14px;
+    background: rgba(5,6,10,0.94);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 56px;
+    z-index: 38;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    flex-shrink: 0;
+  }
+  .mob-cat-bar::-webkit-scrollbar { display: none; }
+
+  .mob-cat-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 13px;
+    border-radius: 20px;
+    border: 1px solid var(--border-2);
+    background: rgba(255,255,255,0.05);
+    color: var(--text2);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .mob-cat-btn:active { transform: scale(0.96); }
+  .mob-cat-btn.active {
+    background: var(--gold-l);
+    border-color: rgba(201,168,76,0.45);
+    color: var(--gold);
+    font-weight: 600;
+  }
+  .mob-cat-icon  { font-size: 14px; }
+  .mob-cat-label { font-size: 13px; }
+  .mob-cat-count {
+    font-size: 11px; font-weight: 700;
+    background: rgba(255,255,255,0.1);
+    padding: 1px 6px; border-radius: 10px; min-width: 18px; text-align: center;
+  }
+  .mob-cat-btn.active .mob-cat-count { background: rgba(201,168,76,0.22); color: var(--gold); }
+
+  /* Ajusta altura do docs-page para a barra de cats */
+  .docs-layout .docs-page { height: calc(100vh - 56px); }
 
   /* Mobile search bar */
   .tn-search-toggle {
