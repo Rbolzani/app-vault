@@ -347,7 +347,7 @@ export default function App() {
                             doc={doc}
                             onEdit={() => setModal({ mode: 'edit', doc })}
                             onDelete={() => handleDelete(doc.id)}
-                            onView={() => window.open(api.getFileUrl(doc.id), '_blank')}
+                            onView={() => window.open(api.getFileUrl(doc.id, doc.file_path), '_blank')}
                           />
                         ))}
                       </tbody>

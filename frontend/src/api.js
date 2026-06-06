@@ -68,7 +68,10 @@ export const deleteDocument = (id) =>
 
 // ── Arquivo ───────────────────────────────────────────────
 
-export const getFileUrl = (id) => `${BASE}/documents/${id}/file`;
+export const getFileUrl = (id, filePath) =>
+  (IS_STATIC && filePath)
+    ? import.meta.env.BASE_URL + 'uploads/' + filePath
+    : `${BASE}/documents/${id}/file`;
 
 // ── Data de exportação (modo estático) ───────────────────
 

@@ -9,10 +9,12 @@
 const path = require('path');
 const fs   = require('fs');
 
-const ROOT    = path.join(__dirname, '..');
-const DB_MOD  = path.join(ROOT, 'backend', 'db');
-const OUT_DIR = path.join(ROOT, 'frontend', 'public');
-const OUT     = path.join(OUT_DIR, 'data.json');
+const ROOT       = path.join(__dirname, '..');
+const DB_MOD     = path.join(ROOT, 'backend', 'db');
+const OUT_DIR    = path.join(ROOT, 'frontend', 'public');
+const OUT        = path.join(OUT_DIR, 'data.json');
+const SRC_UPL    = path.join(ROOT, 'backend', 'uploads');
+const DEST_UPL   = path.join(OUT_DIR, 'uploads');
 
 // Inicializa o banco (cria tabelas/seed se necessário)
 const { initDB, getDB } = require(DB_MOD);
@@ -45,11 +47,28 @@ const payload = {
   documents,
 };
 
-fs.mkdirSync(OUT_DIR, { recursive: true });
+fs.mkdirSync(OUT_DIR,  { recursive: true });
+fs.mkdirSync(DEST_UPL, { recursive: true });
 fs.writeFileSync(OUT, JSON.stringify(payload));
+
+// ── Copia arquivos PDF/anexos para frontend/public/uploads/ ──
+let filesCopied = 0;
+let filesMissing = 0;
+for (const doc of documents) {
+  if (!doc.file_path) continue;
+  const src  = path.join(SRC_UPL, doc.file_path);
+  const dest = path.join(DEST_UPL, doc.file_path);
+  if (fs.existsSync(src)) {
+    fs.copyFileSync(src, dest);
+    filesCopied++;
+  } else {
+    filesMissing++;
+  }
+}
 
 const size = (fs.statSync(OUT).size / 1024).toFixed(1);
 console.log('\n✓  DocVault — Exportação para nuvem concluída');
 console.log(`   Repositórios : ${repositories.length}`);
 console.log(`   Documentos   : ${documents.length}`);
-console.log(`   Arquivo      : frontend/public/data.json (${size} KB)\n`);
+console.log(`   Arquivos     : ${filesCopied} copiados${filesMissing ? `, ${filesMissing} não encontrados` : ''}`);
+console.log(`   data.json    : ${size} KB\n`);
