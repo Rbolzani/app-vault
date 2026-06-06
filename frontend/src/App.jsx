@@ -25,10 +25,7 @@ export function formatDate(s) {
 export default function App() {
   const [repos, setRepos]             = useState([]);
   const [reposLoaded, setReposLoaded] = useState(false);
-  const [activeRepoId, setActiveRepoId] = useState(() => {
-    const saved = localStorage.getItem('docvault_repo_id');
-    return saved ? Number(saved) : null;
-  });
+  const [activeRepoId, setActiveRepoId] = useState(null);
 
   const [types, setTypes]       = useState([]);
   const [docs, setDocs]         = useState([]);
@@ -130,7 +127,6 @@ export default function App() {
   };
 
   const handleSelectRepo = (repo) => {
-    localStorage.setItem('docvault_repo_id', repo.id);
     setActiveRepoId(repo.id);
     setDocs([]); setView('docs'); setActiveType(''); setActiveStatus(''); setSearch('');
   };
@@ -138,7 +134,6 @@ export default function App() {
   const handleSwitchRepo = () => {
     loadRepos();
     setActiveRepoId(null);
-    localStorage.removeItem('docvault_repo_id');
   };
 
   const handleRenameRepo = async (id, name) => {
