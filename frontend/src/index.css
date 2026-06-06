@@ -1635,15 +1635,15 @@ tr:hover .row-actions { opacity: 1; }
   .form-input, .form-select, .form-textarea { font-size: 16px; padding: 11px 12px; }
   .btn-secondary { font-size: 14px; padding: 9px 18px; }
 
-  /* Repo selector — scroll fix */
+  /* Repo selector — scroll fix mobile */
   .repo-selector {
-    height: 100vh;
-    min-height: unset;
+    position: fixed;
+    inset: 0;
+    display: block;
     overflow-y: scroll;
     -webkit-overflow-scrolling: touch;
-    align-items: flex-start;
-    padding-top: 16px;
-    padding-bottom: 40px;
+    overscroll-behavior: contain;
+    min-height: unset;
   }
   .repo-sel-inner   { gap: 28px; padding: 32px 16px; }
   .repo-sel-logo    { width: 56px; height: 56px; font-size: 20px; }
