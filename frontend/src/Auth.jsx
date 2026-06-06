@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from './supabase';
+import { supabase, debugUrl } from './supabase';
 
 export default function Auth() {
   const [mode, setMode]       = useState('login');
@@ -25,7 +25,7 @@ export default function Auth() {
         setMode('login');
       }
     } catch (err) {
-      setError(err.message);
+      setError(`${err.message} (status: ${err.status ?? 'n/a'}, name: ${err.name ?? 'n/a'})`);
     } finally {
       setLoading(false);
     }
@@ -91,7 +91,7 @@ export default function Auth() {
         </form>
 
         <div style={{ marginTop: 16, fontSize: 11, color: '#555', textAlign: 'center', wordBreak: 'break-all' }}>
-          URL: {import.meta.env.VITE_SUPABASE_URL ?? '(não definida)'}
+          URL ({debugUrl.length} chars): {debugUrl}
         </div>
 
         <div className="auth-switch">
