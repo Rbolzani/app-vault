@@ -107,24 +107,37 @@ export const fetchTypes = async () => {
 
 // ── Documentos ────────────────────────────────────────────
 
+const WITH_FILES    = '*, document_types(label,icon,color), document_files(id,file_path,file_name,file_size,file_mime,sort_order)';
+const WITHOUT_FILES = '*, document_types(label,icon,color)';
+
+async function selectDocs(query) {
+  // Tenta com document_files; se a tabela não existir ainda, usa fallback
+  const { data, error } = await query(WITH_FILES);
+  if (error) {
+    if (error.message?.includes('document_files') || error.code === '42P01') {
+      const res = await query(WITHOUT_FILES);
+      if (res.error) throw new Error(res.error.message);
+      return res.data;
+    }
+    throw new Error(error.message);
+  }
+  return data;
+}
+
 export const fetchDocuments = async (repoId) => {
-  let q = supabase
-    .from('documents')
-    .select('*, document_types(label,icon,color), document_files(id,file_path,file_name,file_size,file_mime,sort_order)')
-    .order('updated_at', { ascending: false });
-  if (repoId) q = q.eq('repo_id', repoId);
-  const { data, error } = await q;
-  if (error) throw new Error(error.message);
+  const data = await selectDocs(sel => {
+    let q = supabase.from('documents').select(sel).order('updated_at', { ascending: false });
+    if (repoId) q = q.eq('repo_id', repoId);
+    return q;
+  });
   return data.map(flattenDoc);
 };
 
 export const getDocument = async (id) => {
-  const { data, error } = await supabase
-    .from('documents')
-    .select('*, document_types(label,icon,color), document_files(id,file_path,file_name,file_size,file_mime,sort_order)')
-    .eq('id', id).single();
-  if (error) throw new Error(error.message);
-  return flattenDoc(data);
+  const data = await selectDocs(sel =>
+    supabase.from('documents').select(sel).eq('id', id).single()
+  );
+  return flattenDoc(Array.isArray(data) ? data[0] : data);
 };
 
 export const createDocument = async (formData) => {
