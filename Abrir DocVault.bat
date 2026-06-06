@@ -4,19 +4,15 @@ cd /d "%~dp0"
 
 echo.
 echo  ==========================================
-echo    DocVault ^| Iniciando...
+echo    DocVault ^| Abrindo no navegador...
 echo  ==========================================
 echo.
-echo  Aguarde, abrindo o navegador em 5 segundos.
-echo  Para encerrar, feche esta janela (ou Ctrl+C).
+
+REM Abre o link na nuvem (GitHub Pages) — funciona sem servidor local
+start https://rbolzani.github.io/app-vault/
+
+echo  Abrindo https://rbolzani.github.io/app-vault/
 echo.
-
-REM Abre o navegador automaticamente apos 5 segundos
-start /b "" cmd /c "timeout /t 5 /nobreak >nul && start http://localhost:5173"
-
-REM Inicia backend + frontend juntos
-npm run dev
-
+echo  Para desenvolvimento local, rode:  npm run dev
 echo.
-echo  App encerrado. Pressione qualquer tecla para fechar.
-pause >nul
+timeout /t 3 /nobreak >nul

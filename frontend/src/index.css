@@ -1575,6 +1575,104 @@ tr:hover .row-actions { opacity: 1; }
   .type-bar-label     { font-size: 14px; }
 }
 
+/* ════════════ AUTH PAGE ════════════ */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg, #05060a);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--panel-high);
+  border: 1px solid var(--border-2);
+  border-radius: 20px;
+  padding: 40px 36px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.auth-logo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.auth-logo {
+  width: 56px;
+  height: 56px;
+  background: var(--gold);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 20px;
+  color: #0a0a0a;
+  letter-spacing: 0.5px;
+}
+
+.auth-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.auth-sub {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text2);
+  margin-bottom: 28px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-switch {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text2);
+}
+
+.auth-switch button {
+  background: none;
+  border: none;
+  color: var(--gold);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.auth-switch button:hover { color: var(--gold-hover); }
+
+/* Botão Sair no RepoSelector */
+.repo-logout-btn {
+  background: none;
+  border: 1px solid var(--border-2);
+  border-radius: 8px;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 6px 14px;
+  margin-top: 12px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.repo-logout-btn:hover { border-color: var(--rose); color: var(--rose); }
+
 /* ════════════ VERY SMALL ≤ 360px ════════════ */
 @media (max-width: 360px) {
   .a-stats { grid-template-columns: 1fr 1fr; }

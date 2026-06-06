@@ -6,7 +6,7 @@ on:
     paths:
       - 'frontend/**'
 
-  workflow_dispatch: # Permite rodar manualmente pelo GitHub
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -38,8 +38,12 @@ jobs:
       - name: Instalar dependências do frontend
         run: npm --prefix frontend install
 
-      - name: Build estático (modo leitura)
-        run: npm --prefix frontend run build:static
+      - name: Build
+        run: npm --prefix frontend run build
+        env:
+          VITE_BASE: /app-vault/
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v4

@@ -4,9 +4,8 @@ import DocumentModal from './components/DocumentModal';
 import Dashboard from './components/Dashboard';
 import RepoSelector from './components/RepoSelector';
 import Sidebar from './components/Sidebar';
+import { supabase } from './supabase';
 import * as api from './api';
-
-const IS_STATIC = api.IS_STATIC;
 
 export function getDocStatus(expiryDate) {
   if (!expiryDate) return { label: 'Sem vencimento', cls: 'status-none' };
@@ -38,11 +37,6 @@ export default function App() {
   const [modal, setModal]       = useState(null);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [drawerOpen, setDrawerOpen]             = useState(false);
-  const [exportedAt, setExportedAt] = useState(null);
-
-  useEffect(() => {
-    if (IS_STATIC) api.getExportedAt().then(setExportedAt).catch(() => {});
-  }, []);
 
   const activeRepo = repos.find(r => r.id === activeRepoId) ?? null;
 
@@ -67,8 +61,8 @@ export default function App() {
       setLoading(true);
       setDocs(await api.fetchDocuments(activeRepoId));
       setError(null);
-    } catch {
-      setError('Não foi possível conectar ao servidor. Verifique se o backend está rodando na porta 3001.');
+    } catch (e) {
+      setError('Erro ao carregar documentos: ' + e.message);
     } finally { setLoading(false); }
   }, [activeRepoId]);
 
@@ -115,7 +109,9 @@ export default function App() {
   }, [docs, activeType, search]);
 
   const handleSave = async (formData) => {
-    modal.mode === 'new' ? await api.createDocument(formData) : await api.updateDocument(modal.doc.id, formData);
+    modal.mode === 'new'
+      ? await api.createDocument(formData)
+      : await api.updateDocument(modal.doc.id, formData);
     setModal(null);
     loadDocs();
   };
@@ -124,6 +120,15 @@ export default function App() {
     if (!window.confirm('Tem certeza que deseja remover este documento?')) return;
     await api.deleteDocument(id);
     setDocs(prev => prev.filter(d => d.id !== id));
+  };
+
+  const handleView = async (id, filePath) => {
+    try {
+      const url = await api.getFileUrl(id, filePath);
+      if (url) window.open(url, '_blank');
+    } catch (e) {
+      alert('Erro ao abrir arquivo: ' + e.message);
+    }
   };
 
   const handleSelectRepo = (repo) => {
@@ -146,11 +151,21 @@ export default function App() {
     setMobileSearchOpen(false); setDrawerOpen(false);
   };
 
+  const handleLogout = async () => {
+    if (!window.confirm('Deseja sair da conta?')) return;
+    await supabase.auth.signOut();
+  };
+
   if (!reposLoaded) return <div className="app-init"><div className="spinner" /></div>;
 
   if (!activeRepoId || !activeRepo) {
     return (
-      <RepoSelector repos={repos} onSelect={handleSelectRepo} onRename={handleRenameRepo} />
+      <RepoSelector
+        repos={repos}
+        onSelect={handleSelectRepo}
+        onRename={handleRenameRepo}
+        onLogout={handleLogout}
+      />
     );
   }
 
@@ -183,18 +198,6 @@ export default function App() {
             <HamburgerIcon />
           </button>
 
-          {/* Banner modo leitura */}
-          {IS_STATIC && (
-            <div className="static-badge">
-              🔒 Leitura
-              {exportedAt && (
-                <span className="static-date">
-                  {' '}· {new Date(exportedAt).toLocaleDateString('pt-BR')}
-                </span>
-              )}
-            </div>
-          )}
-
           <div className="tn-search">
             <span className="tn-search-ico">⌕</span>
             <input
@@ -215,14 +218,11 @@ export default function App() {
             <SearchIcon />
           </button>
 
-          {!IS_STATIC && (
-            <button className="btn-primary" onClick={() => setModal({ mode: 'new' })}>
-              + Adicionar
-            </button>
-          )}
-          <div className="tn-avatar" onClick={!IS_STATIC ? handleSwitchRepo : undefined}
-            title={IS_STATIC ? activeRepo.name : undefined}
-            style={IS_STATIC ? { cursor: 'default' } : {}}>
+          <button className="btn-primary" onClick={() => setModal({ mode: 'new' })}>
+            + Adicionar
+          </button>
+
+          <div className="tn-avatar" onClick={handleSwitchRepo} title={activeRepo.name}>
             {activeRepo.name.charAt(0).toUpperCase()}
           </div>
         </div>
@@ -267,14 +267,15 @@ export default function App() {
               onClick={() => switchView('dashboard')}>
               <DashIcon /> Painel
             </button>
-            {!IS_STATIC && (
-              <button className="drawer-nav-btn drawer-add"
-                onClick={() => { setDrawerOpen(false); setModal({ mode: 'new' }); }}>
-                <PlusIcon /> Novo documento
-              </button>
-            )}
+            <button className="drawer-nav-btn drawer-add"
+              onClick={() => { setDrawerOpen(false); setModal({ mode: 'new' }); }}>
+              <PlusIcon /> Novo documento
+            </button>
+            <button className="drawer-nav-btn" style={{ marginTop: 'auto', color: '#f43f5e' }}
+              onClick={handleLogout}>
+              <LogoutIcon /> Sair
+            </button>
           </div>
-
         </div>
       </div>
 
@@ -325,10 +326,10 @@ export default function App() {
           {/* Stats */}
           <div className="a-stats">
             {[
-              { icon: '📋', bg: 'rgba(79,70,229,0.08)',  color: '#818cf8', n: statusCounts.all,      lbl: 'Total'         },
-              { icon: '✅', bg: 'rgba(16,185,129,0.10)', color: '#10b981', n: statusCounts.valid,    lbl: 'Válidos'       },
-              { icon: '⏳', bg: 'rgba(245,158,11,0.10)', color: '#f59e0b', n: statusCounts.expiring, lbl: 'A vencer'      },
-              { icon: '⚠️', bg: 'rgba(244,63,94,0.09)',  color: '#f43f5e', n: statusCounts.expired,  lbl: 'Vencidos'      },
+              { icon: '📋', bg: 'rgba(79,70,229,0.08)',  color: '#818cf8', n: statusCounts.all,      lbl: 'Total'    },
+              { icon: '✅', bg: 'rgba(16,185,129,0.10)', color: '#10b981', n: statusCounts.valid,    lbl: 'Válidos'  },
+              { icon: '⏳', bg: 'rgba(245,158,11,0.10)', color: '#f59e0b', n: statusCounts.expiring, lbl: 'A vencer' },
+              { icon: '⚠️', bg: 'rgba(244,63,94,0.09)',  color: '#f43f5e', n: statusCounts.expired,  lbl: 'Vencidos' },
             ].map(s => (
               <div key={s.lbl} className="a-stat-card">
                 <div className="a-stat-icon" style={{ background: s.bg }}>{s.icon}</div>
@@ -406,7 +407,7 @@ export default function App() {
                             doc={doc}
                             onEdit={() => setModal({ mode: 'edit', doc })}
                             onDelete={() => handleDelete(doc.id)}
-                            onView={() => window.open(api.getFileUrl(doc.id, doc.file_path), '_blank')}
+                            onView={() => handleView(doc.id, doc.file_path)}
                           />
                         ))}
                       </tbody>
@@ -540,6 +541,15 @@ function PlusIcon() {
   return (
     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+    </svg>
+  );
+}
+
+function LogoutIcon() {
+  return (
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
     </svg>
   );
 }

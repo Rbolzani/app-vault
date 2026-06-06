@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function RepoSelector({ repos, onSelect, onRename }) {
+export default function RepoSelector({ repos, onSelect, onRename, onLogout }) {
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName]   = useState('');
 
@@ -22,6 +22,11 @@ export default function RepoSelector({ repos, onSelect, onRename }) {
           <div className="repo-sel-logo">DV</div>
           <h1 className="repo-sel-title">DocVault</h1>
           <p className="repo-sel-sub">Selecione o repositório para acessar</p>
+          {onLogout && (
+            <button className="repo-logout-btn" onClick={onLogout} title="Sair">
+              Sair
+            </button>
+          )}
         </header>
 
         <div className="repo-cards">

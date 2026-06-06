@@ -1,5 +1,4 @@
 import { getDocStatus, formatDate } from '../App';
-import { IS_STATIC } from '../api';
 
 function getValidityInfo(issueDate, expiryDate) {
   if (!expiryDate) return { pct: null, color: '#10b981', label: '—' };
@@ -108,16 +107,12 @@ export default function DocumentCard({ doc, onEdit, onDelete, onView }) {
 
       {/* Ações */}
       <td>
-        <div className="row-actions" style={IS_STATIC ? { opacity: 1 } : {}}>
+        <div className="row-actions">
           {doc.file_path && (
             <button className="action-btn" title="Abrir arquivo" onClick={onView}><EyeIcon /></button>
           )}
-          {!IS_STATIC && (
-            <>
-              <button className="action-btn" title="Editar" onClick={onEdit}><EditIcon /></button>
-              <button className="action-btn action-btn-danger" title="Remover" onClick={onDelete}><TrashIcon /></button>
-            </>
-          )}
+          <button className="action-btn" title="Editar" onClick={onEdit}><EditIcon /></button>
+          <button className="action-btn action-btn-danger" title="Remover" onClick={onDelete}><TrashIcon /></button>
         </div>
       </td>
     </tr>

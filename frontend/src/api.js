@@ -1,80 +1,206 @@
-/* Modo estático: lê data.json em vez de chamar a API Express */
-export const IS_STATIC = import.meta.env.VITE_STATIC === '1';
+import { supabase } from './supabase';
 
-const BASE = '/api';
+// Mantido para compatibilidade (sempre false agora)
+export const IS_STATIC = false;
+export const getExportedAt = () => Promise.resolve(null);
 
-// Cache dos dados estáticos (carregado uma vez)
-let _cache = null;
+// ── Helpers ───────────────────────────────────────────────
 
-async function staticData() {
-  if (!_cache) {
-    const res = await fetch(import.meta.env.BASE_URL + 'data.json');
-    if (!res.ok) throw new Error('data.json não encontrado');
-    _cache = await res.json();
-  }
-  return _cache;
+function flattenDoc(doc) {
+  return {
+    ...doc,
+    type_id:    String(doc.type_id ?? ''),
+    type_label: doc.document_types?.label ?? '',
+    type_icon:  doc.document_types?.icon  ?? '📄',
+    type_color: doc.document_types?.color ?? '#6366f1',
+    document_types: undefined,
+  };
 }
 
-async function api(path, options = {}) {
-  const res = await fetch(BASE + path, options);
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `Erro ${res.status}`);
-  }
-  return res.json();
+function normalizeType(t) {
+  return { ...t, id: String(t.id) };
+}
+
+async function getUser() {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
 }
 
 // ── Repositórios ──────────────────────────────────────────
 
-export const fetchRepositories = () => IS_STATIC
-  ? staticData().then(d => d.repositories)
-  : api('/repositories');
+export const fetchRepositories = async () => {
+  const [reposRes, docsRes] = await Promise.all([
+    supabase.from('repositories').select('*').order('sort_order'),
+    supabase.from('documents').select('repo_id, expiry_date'),
+  ]);
+  if (reposRes.error) throw new Error(reposRes.error.message);
+  if (docsRes.error) throw new Error(docsRes.error.message);
 
-export const updateRepository = (id, name) =>
-  api(`/repositories/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name }),
+  const now = new Date();
+  return reposRes.data.map(r => {
+    const rDocs = docsRes.data.filter(d => d.repo_id === r.id);
+    let validCount = 0, expiringCount = 0, expiredCount = 0;
+    rDocs.forEach(d => {
+      if (!d.expiry_date) { validCount++; return; }
+      const days = Math.floor((new Date(d.expiry_date + 'T12:00:00') - now) / 86_400_000);
+      if (days < 0)       expiredCount++;
+      else if (days < 90) expiringCount++;
+      else                validCount++;
+    });
+    return { ...r, docCount: rDocs.length, validCount, expiringCount, expiredCount };
   });
+};
+
+export const createRepository = async (name) => {
+  const user = await getUser();
+  const { data, error } = await supabase
+    .from('repositories')
+    .insert({ user_id: user.id, name, color: '#f97316', sort_order: 0 })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+};
+
+export const updateRepository = async (id, name) => {
+  const { data, error } = await supabase
+    .from('repositories')
+    .update({ name })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+};
 
 // ── Tipos ─────────────────────────────────────────────────
 
-export const fetchTypes = () => IS_STATIC
-  ? staticData().then(d => d.types)
-  : api('/types');
+export const fetchTypes = async () => {
+  const { data, error } = await supabase
+    .from('document_types')
+    .select('*')
+    .order('sort_order');
+  if (error) throw new Error(error.message);
+  return data.map(normalizeType);
+};
 
 // ── Documentos ────────────────────────────────────────────
 
-export const fetchDocuments = (repoId) => IS_STATIC
-  ? staticData().then(d =>
-      repoId
-        ? d.documents.filter(doc => String(doc.repo_id) === String(repoId))
-        : d.documents
-    )
-  : api(`/documents${repoId ? `?repo_id=${repoId}` : ''}`);
+export const fetchDocuments = async (repoId) => {
+  let q = supabase
+    .from('documents')
+    .select('*, document_types(label, icon, color)')
+    .order('updated_at', { ascending: false });
+  if (repoId) q = q.eq('repo_id', repoId);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return data.map(flattenDoc);
+};
 
-export const getDocument = (id) => IS_STATIC
-  ? staticData().then(d => d.documents.find(doc => String(doc.id) === String(id)))
-  : api(`/documents/${id}`);
+export const getDocument = async (id) => {
+  const { data, error } = await supabase
+    .from('documents')
+    .select('*, document_types(label, icon, color)')
+    .eq('id', id)
+    .single();
+  if (error) throw new Error(error.message);
+  return flattenDoc(data);
+};
 
-export const createDocument = (formData) =>
-  api('/documents', { method: 'POST', body: formData });
+export const createDocument = async (formData) => {
+  const user = await getUser();
+  const file = formData.get('file');
 
-export const updateDocument = (id, formData) =>
-  api(`/documents/${id}`, { method: 'PUT', body: formData });
+  const docData = { user_id: user.id };
+  for (const [k, v] of formData.entries()) {
+    if (k === 'file') continue;
+    if (k === 'type_id') { docData.type_id = Number(v) || null; continue; }
+    if (k === 'repo_id') { docData.repo_id = Number(v) || null; continue; }
+    docData[k] = v || null;
+  }
 
-export const deleteDocument = (id) =>
-  api(`/documents/${id}`, { method: 'DELETE' });
+  if (file && file.size > 0) {
+    const ext = file.name.split('.').pop();
+    const path = `${user.id}/${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from('documents').upload(path, file);
+    if (upErr) throw new Error(upErr.message);
+    docData.file_path = path;
+    docData.file_name = file.name;
+    docData.file_size = file.size;
+    docData.file_mime = file.type;
+  }
+
+  const { data, error } = await supabase
+    .from('documents')
+    .insert(docData)
+    .select('*, document_types(label, icon, color)')
+    .single();
+  if (error) throw new Error(error.message);
+  return flattenDoc(data);
+};
+
+export const updateDocument = async (id, formData) => {
+  const user = await getUser();
+  const file       = formData.get('file');
+  const removeFile = formData.get('remove_file') === 'true';
+
+  const docData = { updated_at: new Date().toISOString() };
+  for (const [k, v] of formData.entries()) {
+    if (k === 'file' || k === 'remove_file') continue;
+    if (k === 'type_id') { docData.type_id = Number(v) || null; continue; }
+    if (k === 'repo_id') { docData.repo_id = Number(v) || null; continue; }
+    docData[k] = v || null;
+  }
+
+  const { data: existing } = await supabase
+    .from('documents').select('file_path').eq('id', id).single();
+
+  if (removeFile && existing?.file_path) {
+    await supabase.storage.from('documents').remove([existing.file_path]);
+    docData.file_path = docData.file_name = docData.file_size = docData.file_mime = null;
+  }
+
+  if (file && file.size > 0) {
+    if (existing?.file_path) {
+      await supabase.storage.from('documents').remove([existing.file_path]);
+    }
+    const ext = file.name.split('.').pop();
+    const path = `${user.id}/${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from('documents').upload(path, file);
+    if (upErr) throw new Error(upErr.message);
+    docData.file_path = path;
+    docData.file_name = file.name;
+    docData.file_size = file.size;
+    docData.file_mime = file.type;
+  }
+
+  const { data, error } = await supabase
+    .from('documents')
+    .update(docData)
+    .eq('id', id)
+    .select('*, document_types(label, icon, color)')
+    .single();
+  if (error) throw new Error(error.message);
+  return flattenDoc(data);
+};
+
+export const deleteDocument = async (id) => {
+  const { data: doc } = await supabase
+    .from('documents').select('file_path').eq('id', id).single();
+  if (doc?.file_path) {
+    await supabase.storage.from('documents').remove([doc.file_path]);
+  }
+  const { error } = await supabase.from('documents').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+};
 
 // ── Arquivo ───────────────────────────────────────────────
 
-export const getFileUrl = (id, filePath) =>
-  (IS_STATIC && filePath)
-    ? import.meta.env.BASE_URL + 'uploads/' + filePath
-    : `${BASE}/documents/${id}/file`;
-
-// ── Data de exportação (modo estático) ───────────────────
-
-export const getExportedAt = () => IS_STATIC
-  ? staticData().then(d => d.exportedAt ?? null)
-  : Promise.resolve(null);
+export const getFileUrl = async (_id, filePath) => {
+  if (!filePath) return null;
+  const { data, error } = await supabase.storage
+    .from('documents')
+    .createSignedUrl(filePath, 3600);
+  if (error) throw new Error(error.message);
+  return data.signedUrl;
+};
