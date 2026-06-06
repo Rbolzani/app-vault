@@ -1344,9 +1344,6 @@ tr:hover .row-actions { opacity: 1; }
     padding: 10px 14px;
     background: rgba(5,6,10,0.94);
     border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 56px;
-    z-index: 38;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
     flex-shrink: 0;
@@ -1386,8 +1383,6 @@ tr:hover .row-actions { opacity: 1; }
   }
   .mob-cat-btn.active .mob-cat-count { background: rgba(201,168,76,0.22); color: var(--gold); }
 
-  /* Ajusta altura do docs-page para a barra de cats */
-  .docs-layout .docs-page { height: calc(100vh - 56px); }
 
   /* Mobile search bar */
   .tn-search-toggle {
@@ -1476,8 +1471,8 @@ tr:hover .row-actions { opacity: 1; }
 
   /* Docs layout */
   .docs-sidebar { display: none; }
-  .docs-layout  { display: block; }
-  .docs-layout .docs-page { overflow-y: auto; height: calc(100vh - 56px); }
+  .docs-layout  { flex: 1; min-height: 0; }
+  .docs-layout .docs-page { flex: 1; overflow-y: auto; min-height: 0; height: auto; }
 
   /* Docs page */
   .docs-inner { padding: 16px 12px 32px; max-width: 100%; }
