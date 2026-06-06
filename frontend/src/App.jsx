@@ -157,6 +157,15 @@ export default function App() {
     await loadRepos();
   };
 
+  const handleDeleteRepo = async (id) => {
+    try {
+      await api.deleteRepository(id);
+      setRepos(prev => prev.filter(r => r.id !== id));
+    } catch (e) {
+      alert('Erro ao excluir repositório: ' + e.message);
+    }
+  };
+
   const switchView = (v) => {
     setView(v); setActiveType(''); setActiveStatus(''); setSearch('');
     setMobileSearchOpen(false);
@@ -176,6 +185,7 @@ export default function App() {
         onSelect={handleSelectRepo}
         onRename={handleRenameRepo}
         onCreate={handleCreateRepo}
+        onDelete={handleDeleteRepo}
         onLogout={handleLogout}
       />
     );

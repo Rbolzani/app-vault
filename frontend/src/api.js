@@ -62,6 +62,21 @@ export const createRepository = async (name, color = '#f97316') => {
   return data;
 };
 
+export const deleteRepository = async (id) => {
+  // Remove arquivos do Storage antes de excluir os documentos
+  const { data: docs } = await supabase
+    .from('documents').select('file_path').eq('repo_id', id);
+  const paths = (docs ?? []).map(d => d.file_path).filter(Boolean);
+  if (paths.length) await supabase.storage.from('documents').remove(paths);
+
+  // Exclui documentos do repositório
+  await supabase.from('documents').delete().eq('repo_id', id);
+
+  // Exclui o repositório
+  const { error } = await supabase.from('repositories').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+};
+
 export const updateRepository = async (id, name) => {
   const { data, error } = await supabase
     .from('repositories')

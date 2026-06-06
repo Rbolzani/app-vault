@@ -1257,8 +1257,18 @@ tr:hover .row-actions { opacity: 1; }
   color: var(--text3); opacity: 0; transition: opacity 0.15s, background 0.12s;
 }
 
-.repo-card:hover .repo-rename-btn { opacity: 1; }
+.repo-card:hover .repo-rename-btn,
+.repo-card:hover .repo-delete-btn { opacity: 1; }
 .repo-rename-btn:hover { background: rgba(255,255,255,0.12); color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+.repo-delete-btn {
+  width: 30px; height: 30px;
+  border: 1px solid var(--border-2); border-radius: 8px;
+  background: rgba(255,255,255,0.06); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text3); opacity: 0; transition: opacity 0.15s, background 0.12s;
+}
+.repo-delete-btn:hover { background: rgba(244,63,94,0.12); color: #f43f5e; border-color: rgba(244,63,94,0.3); }
 
 .repo-name      { font-size: 18px; font-weight: 700; color: var(--ink); margin: 0; letter-spacing: -0.3px; }
 
@@ -1625,7 +1635,16 @@ tr:hover .row-actions { opacity: 1; }
   .form-input, .form-select, .form-textarea { font-size: 16px; padding: 11px 12px; }
   .btn-secondary { font-size: 14px; padding: 9px 18px; }
 
-  /* Repo selector */
+  /* Repo selector — scroll fix */
+  .repo-selector {
+    height: 100vh;
+    min-height: unset;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    align-items: flex-start;
+    padding-top: 16px;
+    padding-bottom: 40px;
+  }
   .repo-sel-inner   { gap: 28px; padding: 32px 16px; }
   .repo-sel-logo    { width: 56px; height: 56px; font-size: 20px; }
   .repo-sel-title   { font-size: 26px; }
