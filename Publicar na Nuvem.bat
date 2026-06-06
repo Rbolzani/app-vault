@@ -13,8 +13,9 @@ echo  [1/3]  Exportando documentos e arquivos...
 node scripts/export-cloud.js
 if errorlevel 1 (
     echo.
-    echo  ERRO: Falha na exportacao.
+    echo  ERRO: Falha na exportacao dos dados.
     echo  Verifique se o Node.js esta instalado.
+    echo.
     pause
     exit /b 1
 )
@@ -33,21 +34,25 @@ if not errorlevel 1 (
     exit /b 0
 )
 
-REM ── 3. Commit com data/hora e push ───────────────────────
-echo  [2/3]  Criando versao com data e hora...
-for /f %%I in ('powershell -NoProfile -Command "Get-Date -Format \"dd/MM/yyyy HH:mm\""') do set TS=%%I
-git commit -m "atualiza documentos - %TS%"
+REM ── 3. Commit com timestamp (sem espacos) ─────────────────
+echo  [2/3]  Criando versao...
+powershell -NoProfile -Command "git commit -m ('atualiza documentos - ' + (Get-Date -Format 'dd/MM/yyyy HH:mm'))"
 if errorlevel 1 (
-    echo  ERRO ao criar commit.
+    echo.
+    echo  ERRO ao criar commit. Detalhes acima.
+    echo.
     pause
     exit /b 1
 )
 
+REM ── 4. Publicar no GitHub ─────────────────────────────────
 echo  [3/3]  Publicando no GitHub Pages...
 git push origin main
 if errorlevel 1 (
     echo.
-    echo  ERRO ao publicar. Verifique sua conexao com a internet.
+    echo  ERRO ao publicar.
+    echo  Verifique sua conexao com a internet.
+    echo.
     pause
     exit /b 1
 )
