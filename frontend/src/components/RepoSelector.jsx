@@ -1,8 +1,19 @@
 import { useState } from 'react';
 
-export default function RepoSelector({ repos, onSelect, onRename, onLogout }) {
+const PALETTE = [
+  '#f97316', '#8b5cf6', '#3b82f6', '#10b981',
+  '#ef4444', '#f59e0b', '#ec4899', '#6366f1',
+];
+
+export default function RepoSelector({ repos, onSelect, onRename, onCreate, onLogout }) {
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName]   = useState('');
+
+  const [creating, setCreating]   = useState(false);
+  const [newName, setNewName]     = useState('');
+  const [newColor, setNewColor]   = useState(PALETTE[0]);
+  const [saving, setSaving]       = useState(false);
+  const [error, setError]         = useState('');
 
   const startEdit = (repo, e) => {
     e.stopPropagation(); e.preventDefault();
@@ -14,18 +25,31 @@ export default function RepoSelector({ repos, onSelect, onRename, onLogout }) {
     setEditingId(null);
   };
 
+  const openCreate = () => {
+    setNewName(''); setNewColor(PALETTE[0]); setError(''); setCreating(true);
+  };
+
+  const handleCreate = async () => {
+    if (!newName.trim()) return;
+    setSaving(true); setError('');
+    try {
+      await onCreate(newName.trim(), newColor);
+      setCreating(false);
+    } catch (e) {
+      setError(e.message);
+    } finally { setSaving(false); }
+  };
+
   return (
     <div className="repo-selector">
-
       <div className="repo-sel-inner">
+
         <header className="repo-sel-header">
           <div className="repo-sel-logo">DV</div>
           <h1 className="repo-sel-title">DocVault</h1>
-          <p className="repo-sel-sub">Selecione o repositório para acessar</p>
+          <p className="repo-sel-sub">Selecione ou crie um repositório</p>
           {onLogout && (
-            <button className="repo-logout-btn" onClick={onLogout} title="Sair">
-              Sair
-            </button>
+            <button className="repo-logout-btn" onClick={onLogout}>Sair</button>
           )}
         </header>
 
@@ -88,7 +112,59 @@ export default function RepoSelector({ repos, onSelect, onRename, onLogout }) {
               </div>
             </div>
           ))}
+
+          {/* Formulário de criação inline */}
+          {creating ? (
+            <div className="repo-new-form" onClick={e => e.stopPropagation()}>
+              <div className="rnf-palette">
+                {PALETTE.map(c => (
+                  <button
+                    key={c}
+                    className={`rnf-color${newColor === c ? ' active' : ''}`}
+                    style={{ background: c }}
+                    onClick={() => setNewColor(c)}
+                    title={c}
+                  />
+                ))}
+              </div>
+              <div className="rnf-preview" style={{ background: newColor }}>
+                {newName ? newName.charAt(0).toUpperCase() : '?'}
+              </div>
+              <input
+                className="repo-name-edit"
+                placeholder="Nome do repositório"
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') handleCreate();
+                  if (e.key === 'Escape') setCreating(false);
+                }}
+                autoFocus
+                style={{ fontSize: 16, marginBottom: 4 }}
+              />
+              {error && <p style={{ color: '#f43f5e', fontSize: 12, margin: '4px 0' }}>{error}</p>}
+              <div className="rnf-btns">
+                <button className="btn-secondary" onClick={() => setCreating(false)} disabled={saving}>
+                  Cancelar
+                </button>
+                <button
+                  className="btn-primary"
+                  onClick={handleCreate}
+                  disabled={!newName.trim() || saving}
+                  style={{ display: 'flex' }}
+                >
+                  {saving ? 'Criando…' : 'Criar repositório'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button className="repo-new-btn" onClick={openCreate}>
+              <span className="rnb-plus">+</span>
+              <span>Novo repositório</span>
+            </button>
+          )}
         </div>
+
       </div>
     </div>
   );

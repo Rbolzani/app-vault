@@ -152,6 +152,11 @@ export default function App() {
     setRepos(prev => prev.map(r => r.id === updated.id ? { ...r, name: updated.name } : r));
   };
 
+  const handleCreateRepo = async (name, color) => {
+    await api.createRepository(name, color);
+    await loadRepos();
+  };
+
   const switchView = (v) => {
     setView(v); setActiveType(''); setActiveStatus(''); setSearch('');
     setMobileSearchOpen(false);
@@ -170,6 +175,7 @@ export default function App() {
         repos={repos}
         onSelect={handleSelectRepo}
         onRename={handleRenameRepo}
+        onCreate={handleCreateRepo}
         onLogout={handleLogout}
       />
     );

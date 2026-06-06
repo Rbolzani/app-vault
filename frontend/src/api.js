@@ -51,11 +51,11 @@ export const fetchRepositories = async () => {
   });
 };
 
-export const createRepository = async (name) => {
+export const createRepository = async (name, color = '#f97316') => {
   const user = await getUser();
   const { data, error } = await supabase
     .from('repositories')
-    .insert({ user_id: user.id, name, color: '#f97316', sort_order: 0 })
+    .insert({ user_id: user.id, name, color, sort_order: 0 })
     .select()
     .single();
   if (error) throw new Error(error.message);
