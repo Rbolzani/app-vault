@@ -40,6 +40,7 @@ export default function App() {
   const [activeStatus, setActiveStatus] = useState('');
   const [modal, setModal]       = useState(null);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen]             = useState(false);
   const [exportedAt, setExportedAt] = useState(null);
 
   useEffect(() => {
@@ -140,7 +141,7 @@ export default function App() {
 
   const switchView = (v) => {
     setView(v); setActiveType(''); setActiveStatus(''); setSearch('');
-    setMobileSearchOpen(false);
+    setMobileSearchOpen(false); setDrawerOpen(false);
   };
 
   if (!reposLoaded) return <div className="app-init"><div className="spinner" /></div>;
@@ -175,6 +176,11 @@ export default function App() {
         </div>
 
         <div className="tn-right">
+          {/* Hambúrguer — só mobile */}
+          <button className="tn-hamburger" onClick={() => setDrawerOpen(v => !v)} aria-label="Menu">
+            <HamburgerIcon />
+          </button>
+
           {/* Banner modo leitura */}
           {IS_STATIC && (
             <div className="static-badge">
@@ -234,6 +240,53 @@ export default function App() {
           <button onClick={() => { setMobileSearchOpen(false); setSearch(''); }}>✕</button>
         </div>
       )}
+
+      {/* ── MOBILE DRAWER ── */}
+      <div className={`mobile-drawer${drawerOpen ? ' open' : ''}`}>
+        <div className="drawer-overlay" onClick={() => setDrawerOpen(false)} />
+        <div className="drawer-panel">
+          <div className="drawer-header">
+            <div className="drawer-logo" style={{ background: activeRepo.color }}>
+              {activeRepo.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="drawer-title">
+              <div className="drawer-app">DocVault</div>
+              <div className="drawer-repo">{activeRepo.name}</div>
+            </div>
+            <button className="drawer-close" onClick={() => setDrawerOpen(false)}>✕</button>
+          </div>
+
+          <div className="drawer-nav">
+            <button className={`drawer-nav-btn${view === 'docs' ? ' active' : ''}`}
+              onClick={() => switchView('docs')}>
+              <DocsIcon /> Documentos
+            </button>
+            <button className={`drawer-nav-btn${view === 'dashboard' ? ' active' : ''}`}
+              onClick={() => switchView('dashboard')}>
+              <DashIcon /> Painel
+            </button>
+            {!IS_STATIC && (
+              <button className="drawer-nav-btn drawer-add"
+                onClick={() => { setDrawerOpen(false); setModal({ mode: 'new' }); }}>
+                <PlusIcon /> Novo documento
+              </button>
+            )}
+          </div>
+
+          <div className="drawer-cats">
+            <Sidebar
+              types={types}
+              typeCounts={typeCounts}
+              activeType={activeType}
+              onTypeSelect={t => {
+                setActiveType(t); setSearch('');
+                if (view !== 'docs') setView('docs');
+                setDrawerOpen(false);
+              }}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* ── PAINEL ── */}
       {view === 'dashboard' ? (
@@ -442,6 +495,42 @@ function SearchIcon() {
     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+  );
+}
+
+function HamburgerIcon() {
+  return (
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+}
+
+function DocsIcon() {
+  return (
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+    </svg>
+  );
+}
+
+function DashIcon() {
+  return (
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <rect x="3" y="3" width="7" height="7" rx="1.5" strokeWidth={2} />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" strokeWidth={2} />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" strokeWidth={2} />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" strokeWidth={2} />
+    </svg>
+  );
+}
+
+function PlusIcon() {
+  return (
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
     </svg>
   );
 }
