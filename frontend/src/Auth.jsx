@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase, debugUrl } from './supabase';
+import { supabase } from './supabase';
 
 export default function Auth() {
   const [mode, setMode]       = useState('login');
@@ -25,7 +25,7 @@ export default function Auth() {
         setMode('login');
       }
     } catch (err) {
-      setError(`${err.message} (status: ${err.status ?? 'n/a'}, name: ${err.name ?? 'n/a'})`);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -89,10 +89,6 @@ export default function Auth() {
             {loading ? 'Aguarde...' : mode === 'login' ? 'Entrar' : 'Criar conta'}
           </button>
         </form>
-
-        <div style={{ marginTop: 16, fontSize: 11, color: '#555', textAlign: 'center', wordBreak: 'break-all' }}>
-          URL ({debugUrl.length} chars): {debugUrl}
-        </div>
 
         <div className="auth-switch">
           {mode === 'login' ? (
