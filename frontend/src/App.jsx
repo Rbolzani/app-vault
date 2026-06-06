@@ -451,7 +451,6 @@ export default function App() {
       {actionDoc && (
         <DocActionMenu
           doc={actionDoc}
-          onView={actionDoc.file_path ? () => { handleView(actionDoc.id, actionDoc.file_path); setActionDoc(null); } : null}
           onEdit={() => { setModal({ mode: 'edit', doc: actionDoc }); setActionDoc(null); }}
           onDelete={() => { handleDelete(actionDoc.id); setActionDoc(null); }}
           onClose={() => setActionDoc(null)}
@@ -473,42 +472,36 @@ export default function App() {
   );
 }
 
-function DocActionMenu({ doc, onView, onEdit, onDelete, onClose }) {
+function DocActionMenu({ doc, onEdit, onDelete, onClose }) {
   const [loading, setLoading] = useState('');
+  const files = doc.files ?? [];
 
-  const handleSave = async () => {
-    setLoading('save');
+  const openUrl = async (filePath, fileName, action) => {
+    setLoading(action + filePath);
     try {
-      // Obtém URL assinada (leve — sem carregar o arquivo na memória)
-      const url = await api.getFileUrl(null, doc.file_path);
-      const a   = document.createElement('a');
-      a.href    = url;
-      a.download = doc.file_name || doc.title;
-      a.rel     = 'noopener noreferrer';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      onClose();
-    } catch (e) {
-      alert('Erro ao salvar: ' + e.message);
-    } finally { setLoading(''); }
-  };
-
-  const handleShare = async () => {
-    setLoading('share');
-    try {
-      const url = await api.getFileUrl(null, doc.file_path);
-      if (navigator.share) {
-        await navigator.share({ title: doc.title, text: doc.title, url });
-      } else {
-        await navigator.clipboard?.writeText(url);
-        alert('Link copiado para a área de transferência!');
+      const url = await api.getFileUrl(null, filePath);
+      if (action === 'view') {
+        window.open(url, '_blank');
+      } else if (action === 'save') {
+        const a = document.createElement('a');
+        a.href = url; a.download = fileName || doc.title;
+        a.rel  = 'noopener noreferrer';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      } else if (action === 'share') {
+        if (navigator.share) {
+          await navigator.share({ title: doc.title, url });
+        } else {
+          await navigator.clipboard?.writeText(url);
+          alert('Link copiado!');
+        }
       }
-      onClose();
     } catch (e) {
-      if (e.name !== 'AbortError') alert('Erro ao compartilhar: ' + e.message);
+      if (e.name !== 'AbortError') alert('Erro: ' + e.message);
     } finally { setLoading(''); }
   };
+
+  const hasFiles = files.length > 0;
+  const singleFile = files.length === 1 ? files[0] : null;
 
   return (
     <div className="dam-overlay" onClick={loading ? undefined : onClose}>
@@ -517,25 +510,59 @@ function DocActionMenu({ doc, onView, onEdit, onDelete, onClose }) {
           <span className="dam-icon">{doc.type_icon}</span>
           <span className="dam-name">{doc.title}</span>
         </div>
+
         <div className="dam-actions">
-          {onView && (
-            <button className="dam-btn" onClick={onView} disabled={!!loading}>
-              <EyeIcon /> Visualizar arquivo
-            </button>
-          )}
-          {doc.file_path && (
+          {/* Arquivo único — mostra ações diretas */}
+          {singleFile && (
             <>
-              <button className="dam-btn" onClick={handleSave} disabled={!!loading}>
-                <DownloadIcon />
-                {loading === 'save' ? 'Salvando...' : 'Salvar no dispositivo'}
+              <button className="dam-btn" disabled={!!loading}
+                onClick={() => openUrl(singleFile.file_path, singleFile.file_name, 'view')}>
+                <EyeIcon /> Visualizar arquivo
               </button>
-              <button className="dam-btn" onClick={handleShare} disabled={!!loading}>
-                <ShareIcon />
-                {loading === 'share' ? 'Compartilhando...' : 'Compartilhar'}
+              <button className="dam-btn" disabled={!!loading}
+                onClick={() => openUrl(singleFile.file_path, singleFile.file_name, 'save')}>
+                <DownloadIcon /> {loading.startsWith('save') ? 'Salvando...' : 'Salvar no dispositivo'}
+              </button>
+              <button className="dam-btn" disabled={!!loading}
+                onClick={() => openUrl(singleFile.file_path, singleFile.file_name, 'share')}>
+                <ShareIcon /> {loading.startsWith('share') ? 'Compartilhando...' : 'Compartilhar'}
               </button>
             </>
           )}
-          <div className="dam-sep" />
+
+          {/* Múltiplos arquivos — lista cada um */}
+          {files.length > 1 && (
+            <div className="dam-files">
+              <div className="dam-files-label">Arquivos ({files.length})</div>
+              {files.map((f, i) => (
+                <div key={f.id ?? i} className="dam-file-row">
+                  <span className="dam-file-icon">
+                    {f.file_mime?.includes('pdf') ? '📄' : '🖼️'}
+                  </span>
+                  <span className="dam-file-name" title={f.file_name}>
+                    {f.file_name || `Arquivo ${i + 1}`}
+                  </span>
+                  <div className="dam-file-btns">
+                    <button title="Visualizar" disabled={!!loading}
+                      onClick={() => openUrl(f.file_path, f.file_name, 'view')}>
+                      <EyeIcon />
+                    </button>
+                    <button title="Salvar" disabled={!!loading}
+                      onClick={() => openUrl(f.file_path, f.file_name, 'save')}>
+                      <DownloadIcon />
+                    </button>
+                    <button title="Compartilhar" disabled={!!loading}
+                      onClick={() => openUrl(f.file_path, f.file_name, 'share')}>
+                      <ShareIcon />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {hasFiles && <div className="dam-sep" />}
+
           <button className="dam-btn" onClick={onEdit} disabled={!!loading}>
             <EditIcon /> Editar documento
           </button>
