@@ -1699,6 +1699,14 @@ tr:hover .row-actions { opacity: 1; }
 .dam-danger svg { color: #f43f5e; }
 .dam-danger:hover, .dam-danger:active { background: rgba(244,63,94,0.09); }
 
+.dam-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.dam-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .dam-cancel {
   display: block; width: 100%; margin-top: 8px;
   padding: 13px; border-radius: 10px;

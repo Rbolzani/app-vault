@@ -458,8 +458,52 @@ export default function App() {
 }
 
 function DocActionMenu({ doc, onView, onEdit, onDelete, onClose }) {
+  const [loading, setLoading] = useState('');
+
+  const handleSave = async () => {
+    setLoading('save');
+    try {
+      const blob = await api.getFileBlob(doc.file_path);
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = doc.file_name || doc.title + '.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      onClose();
+    } catch (e) {
+      alert('Erro ao salvar arquivo: ' + e.message);
+    } finally { setLoading(''); }
+  };
+
+  const handleShare = async () => {
+    setLoading('share');
+    try {
+      const blob = await api.getFileBlob(doc.file_path);
+      const file = new File(
+        [blob],
+        doc.file_name || doc.title + '.pdf',
+        { type: doc.file_mime || 'application/octet-stream' }
+      );
+
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: doc.title });
+      } else if (navigator.share) {
+        const url = await api.getFileUrl(null, doc.file_path);
+        await navigator.share({ title: doc.title, url });
+      } else {
+        alert('Compartilhamento não suportado neste navegador.');
+      }
+      onClose();
+    } catch (e) {
+      if (e.name !== 'AbortError') alert('Erro ao compartilhar: ' + e.message);
+    } finally { setLoading(''); }
+  };
+
   return (
-    <div className="dam-overlay" onClick={onClose}>
+    <div className="dam-overlay" onClick={loading ? undefined : onClose}>
       <div className="dam-panel" onClick={e => e.stopPropagation()}>
         <div className="dam-title">
           <span className="dam-icon">{doc.type_icon}</span>
@@ -467,23 +511,50 @@ function DocActionMenu({ doc, onView, onEdit, onDelete, onClose }) {
         </div>
         <div className="dam-actions">
           {onView && (
-            <button className="dam-btn" onClick={onView}>
+            <button className="dam-btn" onClick={onView} disabled={!!loading}>
               <EyeIcon /> Visualizar arquivo
             </button>
           )}
-          <button className="dam-btn" onClick={onEdit}>
+          {doc.file_path && (
+            <>
+              <button className="dam-btn" onClick={handleSave} disabled={!!loading}>
+                <DownloadIcon />
+                {loading === 'save' ? 'Salvando...' : 'Salvar no dispositivo'}
+              </button>
+              <button className="dam-btn" onClick={handleShare} disabled={!!loading}>
+                <ShareIcon />
+                {loading === 'share' ? 'Compartilhando...' : 'Compartilhar'}
+              </button>
+            </>
+          )}
+          <div className="dam-sep" />
+          <button className="dam-btn" onClick={onEdit} disabled={!!loading}>
             <EditIcon /> Editar documento
           </button>
-          <button className="dam-btn dam-danger" onClick={onDelete}>
+          <button className="dam-btn dam-danger" onClick={onDelete} disabled={!!loading}>
             <TrashIcon /> Excluir documento
           </button>
         </div>
-        <button className="dam-cancel" onClick={onClose}>Cancelar</button>
+        <button className="dam-cancel" onClick={onClose} disabled={!!loading}>Cancelar</button>
       </div>
     </div>
   );
 }
 
+function DownloadIcon() {
+  return (
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+    </svg>
+  );
+}
+function ShareIcon() {
+  return (
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+    </svg>
+  );
+}
 function EyeIcon() {
   return (
     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
