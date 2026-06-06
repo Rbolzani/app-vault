@@ -1326,6 +1326,9 @@ tr:hover .row-actions { opacity: 1; }
   .tn-search { display: none; }
   .tn-avatar { width: 36px; height: 36px; font-size: 14px; }
   .btn-primary { display: none; }
+  .modal .btn-primary,
+  .repo-selector .btn-primary,
+  .empty-state .btn-primary { display: flex; }
   .static-badge { display: none; }
 
   .tn-logout-mobile {
