@@ -47,11 +47,64 @@ export default function RepoSelector({ repos, onSelect, onRename, onCreate, onLo
         <header className="repo-sel-header">
           <div className="repo-sel-logo">DV</div>
           <h1 className="repo-sel-title">DocVault</h1>
-          <p className="repo-sel-sub">Selecione ou crie um repositório</p>
+          <p className="repo-sel-sub">Selecione o repositório para acessar</p>
+
+          {/* Botão sempre visível no cabeçalho */}
+          <button className="repo-new-header-btn" onClick={openCreate}>
+            <span>+</span> Novo repositório
+          </button>
+
           {onLogout && (
             <button className="repo-logout-btn" onClick={onLogout}>Sair</button>
           )}
         </header>
+
+        {/* Formulário de criação — aparece entre o cabeçalho e os cards */}
+        {creating && (
+          <div className="repo-new-form">
+            <div className="rnf-row">
+              <div className="rnf-preview" style={{ background: newColor }}>
+                {newName ? newName.charAt(0).toUpperCase() : '?'}
+              </div>
+              <input
+                className="repo-name-edit"
+                placeholder="Nome do repositório"
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') handleCreate();
+                  if (e.key === 'Escape') setCreating(false);
+                }}
+                autoFocus
+                style={{ flex: 1, fontSize: 16 }}
+              />
+            </div>
+            <div className="rnf-palette">
+              {PALETTE.map(c => (
+                <button
+                  key={c}
+                  className={`rnf-color${newColor === c ? ' active' : ''}`}
+                  style={{ background: c }}
+                  onClick={() => setNewColor(c)}
+                />
+              ))}
+            </div>
+            {error && <p style={{ color: '#f43f5e', fontSize: 12, margin: 0 }}>{error}</p>}
+            <div className="rnf-btns">
+              <button className="btn-secondary" onClick={() => setCreating(false)} disabled={saving}>
+                Cancelar
+              </button>
+              <button
+                className="btn-primary"
+                onClick={handleCreate}
+                disabled={!newName.trim() || saving}
+                style={{ display: 'flex' }}
+              >
+                {saving ? 'Criando…' : 'Criar'}
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="repo-cards">
           {repos.map((repo, i) => (
@@ -112,57 +165,6 @@ export default function RepoSelector({ repos, onSelect, onRename, onCreate, onLo
               </div>
             </div>
           ))}
-
-          {/* Formulário de criação inline */}
-          {creating ? (
-            <div className="repo-new-form" onClick={e => e.stopPropagation()}>
-              <div className="rnf-palette">
-                {PALETTE.map(c => (
-                  <button
-                    key={c}
-                    className={`rnf-color${newColor === c ? ' active' : ''}`}
-                    style={{ background: c }}
-                    onClick={() => setNewColor(c)}
-                    title={c}
-                  />
-                ))}
-              </div>
-              <div className="rnf-preview" style={{ background: newColor }}>
-                {newName ? newName.charAt(0).toUpperCase() : '?'}
-              </div>
-              <input
-                className="repo-name-edit"
-                placeholder="Nome do repositório"
-                value={newName}
-                onChange={e => setNewName(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') handleCreate();
-                  if (e.key === 'Escape') setCreating(false);
-                }}
-                autoFocus
-                style={{ fontSize: 16, marginBottom: 4 }}
-              />
-              {error && <p style={{ color: '#f43f5e', fontSize: 12, margin: '4px 0' }}>{error}</p>}
-              <div className="rnf-btns">
-                <button className="btn-secondary" onClick={() => setCreating(false)} disabled={saving}>
-                  Cancelar
-                </button>
-                <button
-                  className="btn-primary"
-                  onClick={handleCreate}
-                  disabled={!newName.trim() || saving}
-                  style={{ display: 'flex' }}
-                >
-                  {saving ? 'Criando…' : 'Criar repositório'}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button className="repo-new-btn" onClick={openCreate}>
-              <span className="rnb-plus">+</span>
-              <span>Novo repositório</span>
-            </button>
-          )}
         </div>
 
       </div>
