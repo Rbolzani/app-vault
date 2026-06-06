@@ -36,7 +36,6 @@ export default function App() {
   const [activeStatus, setActiveStatus] = useState('');
   const [modal, setModal]       = useState(null);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
-  const [drawerOpen, setDrawerOpen]             = useState(false);
 
   const activeRepo = repos.find(r => r.id === activeRepoId) ?? null;
 
@@ -148,7 +147,7 @@ export default function App() {
 
   const switchView = (v) => {
     setView(v); setActiveType(''); setActiveStatus(''); setSearch('');
-    setMobileSearchOpen(false); setDrawerOpen(false);
+    setMobileSearchOpen(false);
   };
 
   const handleLogout = async () => {
@@ -193,11 +192,6 @@ export default function App() {
         </div>
 
         <div className="tn-right">
-          {/* Hambúrguer — só mobile */}
-          <button className="tn-hamburger" onClick={() => setDrawerOpen(v => !v)} aria-label="Menu">
-            <HamburgerIcon />
-          </button>
-
           <div className="tn-search">
             <span className="tn-search-ico">⌕</span>
             <input
@@ -222,9 +216,14 @@ export default function App() {
             + Adicionar
           </button>
 
-          <div className="tn-avatar" onClick={handleSwitchRepo} title={activeRepo.name}>
+          <div className="tn-avatar" onClick={handleSwitchRepo} title="Trocar repositório">
             {activeRepo.name.charAt(0).toUpperCase()}
           </div>
+
+          {/* Logout — só mobile (desktop usa avatar) */}
+          <button className="tn-logout-mobile" onClick={handleLogout} title="Sair">
+            <LogoutIcon />
+          </button>
         </div>
       </nav>
 
@@ -242,42 +241,6 @@ export default function App() {
           <button onClick={() => { setMobileSearchOpen(false); setSearch(''); }}>✕</button>
         </div>
       )}
-
-      {/* ── MOBILE DRAWER ── */}
-      <div className={`mobile-drawer${drawerOpen ? ' open' : ''}`}>
-        <div className="drawer-overlay" onClick={() => setDrawerOpen(false)} />
-        <div className="drawer-panel">
-          <div className="drawer-header">
-            <div className="drawer-logo" style={{ background: activeRepo.color }}>
-              {activeRepo.name.charAt(0).toUpperCase()}
-            </div>
-            <div className="drawer-title">
-              <div className="drawer-app">DocVault</div>
-              <div className="drawer-repo">{activeRepo.name}</div>
-            </div>
-            <button className="drawer-close" onClick={() => setDrawerOpen(false)}>✕</button>
-          </div>
-
-          <div className="drawer-nav">
-            <button className={`drawer-nav-btn${view === 'docs' ? ' active' : ''}`}
-              onClick={() => switchView('docs')}>
-              <DocsIcon /> Documentos
-            </button>
-            <button className={`drawer-nav-btn${view === 'dashboard' ? ' active' : ''}`}
-              onClick={() => switchView('dashboard')}>
-              <DashIcon /> Painel
-            </button>
-            <button className="drawer-nav-btn drawer-add"
-              onClick={() => { setDrawerOpen(false); setModal({ mode: 'new' }); }}>
-              <PlusIcon /> Novo documento
-            </button>
-            <button className="drawer-nav-btn" style={{ marginTop: 'auto', color: '#f43f5e' }}
-              onClick={handleLogout}>
-              <LogoutIcon /> Sair
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* ── BARRA DE CATEGORIAS (mobile, docs) ── */}
       {view === 'docs' && types.length > 0 && (

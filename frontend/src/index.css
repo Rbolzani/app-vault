@@ -1298,12 +1298,13 @@ tr:hover .row-actions { opacity: 1; }
    ══════════════════════════════════════════════════════════ */
 
 /* ── Mobile-only elements (ocultos no desktop) ───────────── */
-.tn-search-toggle { display: none; }
-.tn-hamburger     { display: none; }
-.bottom-nav       { display: none; }
-.mobile-searchbar { display: none; }
-.mobile-drawer    { display: none; }
-.mob-cat-bar      { display: none; }
+.tn-search-toggle  { display: none; }
+.tn-hamburger      { display: none; }
+.bottom-nav        { display: none; }
+.mobile-searchbar  { display: none; }
+.mobile-drawer     { display: none; }
+.mob-cat-bar       { display: none; }
+.tn-logout-mobile  { display: none; }
 
 /* ════════════ TABLET ≤ 1024px ════════════ */
 @media (max-width: 1024px) {
@@ -1327,14 +1328,14 @@ tr:hover .row-actions { opacity: 1; }
   .btn-primary { display: none; }
   .static-badge { display: none; }
 
-  .tn-hamburger {
+  .tn-logout-mobile {
     display: flex; align-items: center; justify-content: center;
-    width: 38px; height: 38px; border-radius: var(--r);
-    background: rgba(255,255,255,0.07); border: 1px solid var(--border-2);
-    color: var(--text2); cursor: pointer; flex-shrink: 0; order: -1;
-    transition: background 0.12s, color 0.12s;
+    width: 36px; height: 36px; border-radius: var(--r);
+    background: none; border: 1px solid var(--border);
+    color: var(--text3); cursor: pointer; flex-shrink: 0;
+    transition: border-color 0.12s, color 0.12s;
   }
-  .tn-hamburger:hover { background: rgba(255,255,255,0.13); color: var(--text); }
+  .tn-logout-mobile:hover { border-color: #f43f5e44; color: #f43f5e; }
 
   /* Barra de categorias (mobile, docs) */
   .mob-cat-bar {
@@ -1471,8 +1472,8 @@ tr:hover .row-actions { opacity: 1; }
 
   /* Docs layout */
   .docs-sidebar { display: none; }
-  .docs-layout  { flex: 1; min-height: 0; }
-  .docs-layout .docs-page { flex: 1; overflow-y: auto; min-height: 0; height: auto; }
+  .docs-layout  { flex: 1; min-height: 0; overflow: hidden; }
+  .docs-layout .docs-page { flex: 1; overflow-y: auto; min-height: 0; }
 
   /* ── Bottom navigation ── */
   .bottom-nav {
