@@ -90,6 +90,10 @@ export default function Auth() {
           </button>
         </form>
 
+        <div style={{ marginTop: 16, fontSize: 11, color: '#555', textAlign: 'center', wordBreak: 'break-all' }}>
+          URL: {import.meta.env.VITE_SUPABASE_URL ?? '(não definida)'}
+        </div>
+
         <div className="auth-switch">
           {mode === 'login' ? (
             <>Ainda não tem conta?{' '}
