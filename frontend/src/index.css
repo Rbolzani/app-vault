@@ -1479,15 +1479,17 @@ tr:hover .row-actions { opacity: 1; }
     flex: 1;
     min-height: 0;
     overflow: hidden;
-    flex-direction: column; /* row → column: garante que flex:1 funcione na vertical */
+    flex-direction: column;
   }
   .docs-layout .docs-page {
     flex: 1;
     min-height: 0;
-    overflow-y: scroll;            /* scroll sempre ativo (mais confiável que auto) */
+    overflow-y: scroll;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain; /* evita scroll encadeado para o pai */
-    touch-action: pan-y;           /* permite gesto vertical explicitamente */
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    /* Encurta o container para não ficar sob a barra inferior (64px) */
+    margin-bottom: 64px;
   }
 
   /* ── Bottom navigation ── */

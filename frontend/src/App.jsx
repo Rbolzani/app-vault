@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import DocumentCard from './components/DocumentCard';
 import DocumentModal from './components/DocumentModal';
 import Dashboard from './components/Dashboard';
@@ -37,6 +37,7 @@ export default function App() {
   const [modal, setModal]       = useState(null);
   const [actionDoc, setActionDoc] = useState(null);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const docsPageRef = useRef(null);
 
   const activeRepo = repos.find(r => r.id === activeRepoId) ?? null;
 
@@ -47,6 +48,11 @@ export default function App() {
 
   useEffect(() => { loadRepos(); }, [loadRepos]);
   useEffect(() => { api.fetchTypes().then(setTypes).catch(() => {}); }, []);
+
+  // Resetar scroll ao trocar filtro (evita scroll preso além do conteúdo)
+  useEffect(() => {
+    if (docsPageRef.current) docsPageRef.current.scrollTop = 0;
+  }, [activeType, activeStatus, search]);
 
   // Mobile: seleciona primeira categoria automaticamente ao entrar em docs
   useEffect(() => {
@@ -275,7 +281,7 @@ export default function App() {
         activeType={activeType}
         onTypeSelect={t => { setActiveType(t); setSearch(''); }}
       />
-      <div className="docs-page">
+      <div className="docs-page" ref={docsPageRef}>
         <div className="docs-inner">
 
           {/* Page header */}
