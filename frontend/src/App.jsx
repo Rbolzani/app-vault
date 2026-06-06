@@ -463,38 +463,30 @@ function DocActionMenu({ doc, onView, onEdit, onDelete, onClose }) {
   const handleSave = async () => {
     setLoading('save');
     try {
-      const blob = await api.getFileBlob(doc.file_path);
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = doc.file_name || doc.title + '.pdf';
+      // Obtém URL assinada (leve — sem carregar o arquivo na memória)
+      const url = await api.getFileUrl(null, doc.file_path);
+      const a   = document.createElement('a');
+      a.href    = url;
+      a.download = doc.file_name || doc.title;
+      a.rel     = 'noopener noreferrer';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
       onClose();
     } catch (e) {
-      alert('Erro ao salvar arquivo: ' + e.message);
+      alert('Erro ao salvar: ' + e.message);
     } finally { setLoading(''); }
   };
 
   const handleShare = async () => {
     setLoading('share');
     try {
-      const blob = await api.getFileBlob(doc.file_path);
-      const file = new File(
-        [blob],
-        doc.file_name || doc.title + '.pdf',
-        { type: doc.file_mime || 'application/octet-stream' }
-      );
-
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: doc.title });
-      } else if (navigator.share) {
-        const url = await api.getFileUrl(null, doc.file_path);
-        await navigator.share({ title: doc.title, url });
+      const url = await api.getFileUrl(null, doc.file_path);
+      if (navigator.share) {
+        await navigator.share({ title: doc.title, text: doc.title, url });
       } else {
-        alert('Compartilhamento não suportado neste navegador.');
+        await navigator.clipboard?.writeText(url);
+        alert('Link copiado para a área de transferência!');
       }
       onClose();
     } catch (e) {

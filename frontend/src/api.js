@@ -196,14 +196,6 @@ export const deleteDocument = async (id) => {
 
 // ── Arquivo ───────────────────────────────────────────────
 
-export const getFileBlob = async (filePath) => {
-  const { data, error } = await supabase.storage
-    .from('documents')
-    .download(filePath);
-  if (error) throw new Error(error.message);
-  return data; // Blob
-};
-
 export const getFileUrl = async (_id, filePath) => {
   if (!filePath) return null;
   const { data, error } = await supabase.storage
