@@ -3,6 +3,7 @@ import DocumentCard from './components/DocumentCard';
 import DocumentModal from './components/DocumentModal';
 import Dashboard from './components/Dashboard';
 import RepoSelector from './components/RepoSelector';
+import Sidebar from './components/Sidebar';
 import * as api from './api';
 
 const IS_STATIC = api.IS_STATIC;
@@ -240,6 +241,13 @@ export default function App() {
       ) : (
 
       /* ── DOCS PAGE ── */
+      <div className="docs-layout">
+      <Sidebar
+        types={types}
+        typeCounts={typeCounts}
+        activeType={activeType}
+        onTypeSelect={t => { setActiveType(t); setSearch(''); }}
+      />
       <div className="docs-page">
         <div className="docs-inner">
 
@@ -281,17 +289,6 @@ export default function App() {
                   <span className="a-toolbar-title">Documentos</span>
                   <span className="a-toolbar-count">{filteredDocs.length}</span>
                   <div style={{ flex: 1 }} />
-                  <select
-                    className="a-type-select"
-                    value={activeType}
-                    onChange={e => setActiveType(e.target.value)}
-                  >
-                    <option value="">Todas as categorias</option>
-                    {types.map(t => (
-                      <option key={t.id} value={t.id}>{t.icon} {t.label}</option>
-                    ))}
-                  </select>
-                  <div className="a-toolbar-sep" />
                   <div className="a-seg">
                     {[
                       { key: '',         label: 'Todos'    },
@@ -368,6 +365,7 @@ export default function App() {
             )}
           </div>
         </div>
+      </div>
       </div>
       )}
 
