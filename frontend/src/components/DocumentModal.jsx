@@ -77,11 +77,7 @@ export default function DocumentModal({ mode, doc, types, repos, defaultRepoId, 
     if (!form.title.trim() || !form.type_id) return;
     setSaving(true); setSaveError('');
     try {
-      const fd = new FormData();
-      Object.entries(form).forEach(([k, v]) => fd.append(k, v));
-      newFiles.forEach(f => fd.append('files[]', f));
-      removeFileIds.forEach(id => fd.append('remove_file_ids[]', String(id)));
-      await onSave(fd);
+      await onSave({ metadata: form, newFiles, removeFileIds });
     } catch (err) {
       setSaveError(err.message || 'Erro ao salvar.');
       setSaving(false);

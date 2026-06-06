@@ -140,49 +140,32 @@ export const getDocument = async (id) => {
   return flattenDoc(Array.isArray(data) ? data[0] : data);
 };
 
-export const createDocument = async (formData) => {
-  const user  = await getUser();
-  const files = formData.getAll('files[]').filter(f => f.size > 0);
+// Recebe { metadata, newFiles, removeFileIds } em vez de FormData
+export const createDocument = async ({ metadata, newFiles = [] }) => {
+  const user = await getUser();
 
-  const docData = { user_id: user.id };
-  for (const [k, v] of formData.entries()) {
-    if (k === 'files[]') continue;
-    if (k === 'type_id') { docData.type_id = Number(v) || null; continue; }
-    if (k === 'repo_id') { docData.repo_id = Number(v) || null; continue; }
-    docData[k] = v || null;
-  }
+  const docData = {
+    user_id:     user.id,
+    title:       metadata.title       || null,
+    type_id:     Number(metadata.type_id) || null,
+    repo_id:     Number(metadata.repo_id) || null,
+    doc_number:  metadata.doc_number  || null,
+    issuer:      metadata.issuer      || null,
+    issue_date:  metadata.issue_date  || null,
+    expiry_date: metadata.expiry_date || null,
+    description: metadata.description || null,
+  };
 
   const { data: doc, error } = await supabase
     .from('documents').insert(docData).select().single();
   if (error) throw new Error(error.message);
 
-  for (let i = 0; i < files.length; i++) {
-    try {
-      const uploaded = await uploadFile(files[i], user.id, i);
-      await supabase.from('document_files').insert({
-        document_id: doc.id, user_id: user.id,
-        file_path: uploaded.path, file_name: uploaded.name,
-        file_size: uploaded.size, file_mime: uploaded.mime,
-        sort_order: i,
-      });
-    } catch { /* skip failed upload */ }
-  }
-
+  await _uploadAndInsertFiles(newFiles, doc.id, user.id, 0);
   return getDocument(doc.id);
 };
 
-export const updateDocument = async (id, formData) => {
-  const user          = await getUser();
-  const newFiles      = formData.getAll('files[]').filter(f => f.size > 0);
-  const removeFileIds = formData.getAll('remove_file_ids[]').map(Number).filter(Boolean);
-
-  const docData = { updated_at: new Date().toISOString() };
-  for (const [k, v] of formData.entries()) {
-    if (k === 'files[]' || k === 'remove_file_ids[]') continue;
-    if (k === 'type_id') { docData.type_id = Number(v) || null; continue; }
-    if (k === 'repo_id') { docData.repo_id = Number(v) || null; continue; }
-    docData[k] = v || null;
-  }
+export const updateDocument = async (id, { metadata, newFiles = [], removeFileIds = [] }) => {
+  const user = await getUser();
 
   // Remove arquivos marcados
   if (removeFileIds.length) {
@@ -193,28 +176,58 @@ export const updateDocument = async (id, formData) => {
     await supabase.from('document_files').delete().in('id', removeFileIds);
   }
 
-  // Conta quantos arquivos já existem para calcular sort_order
+  // Conta arquivos existentes para sort_order
   const { count: existing } = await supabase
     .from('document_files').select('*', { count: 'exact', head: true }).eq('document_id', id);
 
-  // Upload novos arquivos
-  for (let i = 0; i < newFiles.length; i++) {
-    try {
-      const uploaded = await uploadFile(newFiles[i], user.id, i);
-      await supabase.from('document_files').insert({
-        document_id: id, user_id: user.id,
-        file_path: uploaded.path, file_name: uploaded.name,
-        file_size: uploaded.size, file_mime: uploaded.mime,
-        sort_order: (existing || 0) + i,
-      });
-    } catch { /* skip */ }
-  }
+  await _uploadAndInsertFiles(newFiles, id, user.id, existing || 0);
+
+  const docData = {
+    updated_at:  new Date().toISOString(),
+    title:       metadata.title       || null,
+    type_id:     Number(metadata.type_id) || null,
+    repo_id:     Number(metadata.repo_id) || null,
+    doc_number:  metadata.doc_number  || null,
+    issuer:      metadata.issuer      || null,
+    issue_date:  metadata.issue_date  || null,
+    expiry_date: metadata.expiry_date || null,
+    description: metadata.description || null,
+  };
 
   const { error } = await supabase.from('documents').update(docData).eq('id', id);
   if (error) throw new Error(error.message);
 
   return getDocument(id);
 };
+
+// Faz upload de todos os arquivos e insere em lote na document_files
+async function _uploadAndInsertFiles(files, documentId, userId, startOrder) {
+  const validFiles = files.filter(f => f instanceof File && f.size > 0);
+  if (!validFiles.length) return;
+
+  // Upload paralelo (mais rápido; Storage do Supabase suporta concorrência)
+  const results = await Promise.allSettled(
+    validFiles.map((file, i) => uploadFile(file, userId, startOrder + i))
+  );
+
+  const rows = results
+    .map((res, i) => res.status === 'fulfilled' ? {
+      document_id: documentId,
+      user_id:     userId,
+      file_path:   res.value.path,
+      file_name:   res.value.name,
+      file_size:   res.value.size,
+      file_mime:   res.value.mime,
+      sort_order:  startOrder + i,
+    } : null)
+    .filter(Boolean);
+
+  if (!rows.length) return;
+
+  // Insert em lote (uma única chamada ao banco)
+  const { error } = await supabase.from('document_files').insert(rows);
+  if (error) console.error('document_files insert:', error.message);
+}
 
 export const deleteDocument = async (id) => {
   const { data: files } = await supabase

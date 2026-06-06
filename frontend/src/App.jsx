@@ -114,10 +114,10 @@ export default function App() {
     };
   }, [docs, activeType, search]);
 
-  const handleSave = async (formData) => {
+  const handleSave = async (data) => {
     modal.mode === 'new'
-      ? await api.createDocument(formData)
-      : await api.updateDocument(modal.doc.id, formData);
+      ? await api.createDocument(data)
+      : await api.updateDocument(modal.doc.id, data);
     setModal(null);
     loadDocs();
   };
