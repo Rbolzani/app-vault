@@ -1870,6 +1870,163 @@ tr:hover .row-actions { opacity: 1; }
 
 .auth-switch button:hover { color: var(--gold-hover); }
 
+/* ════════════ LOCK SCREEN ════════════ */
+.lock-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.lock-card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--panel-high);
+  border: 1px solid var(--border-2);
+  border-radius: 20px;
+  padding: 40px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.lock-logo {
+  width: 56px;
+  height: 56px;
+  background: var(--gold);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 20px;
+  color: #0a0a0a;
+  letter-spacing: 0.5px;
+  margin-bottom: 20px;
+}
+
+.lock-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.4px;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.lock-email {
+  font-size: 13px;
+  color: var(--text2);
+  text-align: center;
+  margin-bottom: 28px;
+  word-break: break-all;
+}
+
+.lock-bio-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: var(--gold-l);
+  border: 1px solid var(--gold-dim);
+  border-radius: 16px;
+  padding: 22px 32px;
+  color: var(--gold);
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.lock-bio-btn:hover:not(:disabled) {
+  background: var(--gold-m);
+  border-color: var(--gold);
+  transform: translateY(-1px);
+}
+
+.lock-bio-btn:disabled { opacity: 0.6; cursor: default; }
+
+.lock-bio-loading { animation: bio-pulse 1.2s ease-in-out infinite; }
+
+@keyframes bio-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+.lock-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 14px 0;
+  color: var(--text3);
+  font-size: 12px;
+}
+
+.lock-divider::before,
+.lock-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.lock-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.lock-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.lock-error { margin-top: 0; border-radius: 8px; width: 100%; }
+
+.lock-bio-desc {
+  font-size: 14px;
+  color: var(--text2);
+  text-align: center;
+  line-height: 1.5;
+  margin-bottom: 24px;
+  padding: 0 4px;
+}
+
+.lock-logout {
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 20px;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+}
+
+.lock-logout:hover { color: var(--text2); }
+
+/* Mobile tweaks */
+@media (max-width: 768px) {
+  .lock-card {
+    padding: 36px 24px 28px;
+    border-radius: 24px;
+  }
+  .lock-title { font-size: 24px; }
+  .lock-bio-btn { padding: 24px 28px; font-size: 15px; }
+}
+
 /* Botão Sair no RepoSelector */
 /* ── Novo repositório ────────────────────────────────────── */
 .repo-new-header-btn {
